@@ -21,11 +21,19 @@ float fh = 160.0/60.0;
 float samplingRate = 30;
 float chromAttenuation_ideal = 1;
 
+float graphLow = 0.0;
+float graphHigh = 256.0;
+
+float sampleOffsetY = -30;
+
+
 //--------------------------------------------------------------
 void testApp::setup(){
     ofSetVerticalSync(true);
     ofEnableSmoothing();
 
+
+    
     //setup video source
     videoSetup();
     
@@ -33,6 +41,10 @@ void testApp::setup(){
     guiSetup();
     
     cvSetup();
+    
+    gViewer1.setup(1024);
+
+
 }
 
 //--------------------------------------------------------------
@@ -56,49 +68,48 @@ void testApp::draw(){
     ofEnableBlendMode(OF_BLENDMODE_ALPHA);
 	ofBackgroundGradient(ofColor(64), ofColor(0));
 
+    
+    float stageWidth = ofGetWidth() - 360;
+    float scale = (float) stageWidth / vid.width / 2;
+    
     ofPushStyle(); {
         ofPushMatrix(); {
             ofTranslate(360, 0);
-            float scale = (float) ofGetHeight() / vid.height / 2;
+            //float scale = (float) ofGetHeight() / vid.height / 2;
             ofScale(scale, scale);
             glDisable(GL_DEPTH_TEST);
             vid.draw(0, 0);
-            ofTranslate(0, ofGetHeight()*0.5/scale);
+            //ofTranslate(0, ofGetHeight()*0.5/scale);
+            ofTranslate( stageWidth * 0.5 / scale, 0);
             evm.draw(0, 0);
             
             for(int i = 0; i < finder.size(); i++) {
                 
                 ofRectangle object = finder.getObjectSmoothed(i);
                 ofPoint forehead = object.getCenter();
-                forehead.y -= 30;
+                forehead.y += sampleOffsetY;
                 calculateColor(forehead);
                 
                 ofPushMatrix(); {
                     ofTranslate(forehead);
                     ofRect(0,0,10,10);
                 } ofPopMatrix();
-                
-                
-                /*sunglasses.setAnchorPercent(.5, .5);
-                float scaleAmount = .85 * object.width / sunglasses.getWidth();
-                ofPushMatrix();{
-                    ofTranslate(object.x + object.width / 2., object.y + object.height * .42);
-                    ofScale(scaleAmount, scaleAmount);
-                    sunglasses.draw(0, 0);
-                } ofPopMatrix();
-                ofPushMatrix();{
-                    ofTranslate(object.getPosition());
-                    ofDrawBitmapStringHighlight(ofToString(finder.getLabel(i)), 0, 0);
-                    ofLine(ofVec2f(), toOf(finder.getVelocity(i)) * 10);
-                } ofPopMatrix();
-                 */
             }
+        } ofPopMatrix();
+        ofPushMatrix(); {
+            ofTranslate(360, vid.height*scale);
             if( colorValues.size()>1 )
             {
                 float lastVal = colorValues[colorValues.size()-1];
             
                 ofDrawBitmapStringHighlight(ofToString(lastVal), 100, 0);
             }
+            ofTranslate(0,0);
+            
+            gViewer1.setRange(graphLow, graphHigh);
+            gViewer1.setSize(ofGetWidth()-360, ofGetHeight()-(vid.height*scale));
+            gViewer1.draw(0, 0);
+            
         } ofPopMatrix();
     } ofPopStyle();
     
@@ -143,6 +154,7 @@ void testApp::calculateColor(ofPoint& p)
             //values.push_back(color.r);
         }
     }
+    gViewer1.pushData(total/100);
     colorValues.push_back(total/100);
     if( colorValues.size() > 100 )
     {
@@ -222,6 +234,16 @@ void testApp::guiSetup()
     gui->addSlider("High cut-off", 0, 10, &fh, length, dim);
     gui->addSlider("SamplingRate", 1, 60, &samplingRate, length, dim);
     gui->addSlider("ChromAttenuation", 0, 1, &chromAttenuation_ideal, length, dim);
+    
+    gui->addSpacer(length, 2);
+    gui->addLabel("GRAPH PROPERTIES", OFX_UI_FONT_LARGE);
+    gui->addSlider("Low Y",0,256,&graphLow,length,dim);
+    gui->addSlider("High Y",0,256,&graphHigh,length,dim);
+    
+    gui->addSpacer(length, 2);
+    gui->addLabel("COLOR SAMPLE AREA", OFX_UI_FONT_LARGE);
+    gui->addSlider("y offset",-50,50,&sampleOffsetY,length,dim);
+    
     
     ofAddListener(gui->newGUIEvent, this, &testApp::guiEvent);
 }

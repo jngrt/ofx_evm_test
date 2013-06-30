@@ -1,8 +1,16 @@
+/*
+ - get color value over scaled rectangle instead of fixed
+ - draw a graph
+ - detect heartbeat...
+ */
+
+
 #pragma once
 
 #include "ofMain.h"
 #include "ofxEvm.h"
 #include "ofxUI.h"
+#include "ofxGraphViewer.h"
 
 #define USE_WEBCAM
 
@@ -30,6 +38,8 @@ private:
     ofImage sunglasses;
     
     vector<float> colorValues;
+    ofxGraphViewer gViewer1;
+    
     
 //--- VIDEO INPUT ---//
 #ifdef USE_WEBCAM
