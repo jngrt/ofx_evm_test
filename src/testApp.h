@@ -11,6 +11,7 @@
 #include "ofxEvm.h"
 #include "ofxUI.h"
 #include "ofxGraphViewer.h"
+#include "ofxFft.h"
 
 #define USE_WEBCAM
 
@@ -30,6 +31,8 @@ public:
     void cvSetup();
     
     void calculateColor(ofPoint& p);
+    void plot(vector<float>& buffer, float scale, float offset);
+
 
 private:
     ofxUICanvas *gui;
@@ -39,6 +42,13 @@ private:
     
     vector<float> colorValues;
     ofxGraphViewer gViewer1;
+    
+    ofxFft* fft;
+    
+    int plotHeight, bufferSize;
+    
+    vector<float> drawBins, middleBins, audioBins;
+
     
     
 //--- VIDEO INPUT ---//

@@ -1,4 +1,5 @@
 #include "testApp.h"
+
 using namespace cv;
 using namespace ofxCv;
 
@@ -43,6 +44,14 @@ void testApp::setup(){
     cvSetup();
     
     gViewer1.setup(1024);
+
+    plotHeight = 128;
+    bufferSize = 2048;
+	
+    fft = ofxFft::create(bufferSize, OF_FFT_WINDOW_HAMMING, OF_FFT_FFTW);
+    drawBins.resize(fft->getBinSize());
+	middleBins.resize(fft->getBinSize());
+	audioBins.resize(fft->getBinSize());
 
 
 }
@@ -107,13 +116,18 @@ void testApp::draw(){
             ofTranslate(0,0);
             
             gViewer1.setRange(graphLow, graphHigh);
-            gViewer1.setSize(ofGetWidth()-360, ofGetHeight()-(vid.height*scale));
+            gViewer1.setSize(ofGetWidth()-360, 200);//ofGetHeight()-(vid.height*scale));
             gViewer1.draw(0, 0);
             
         } ofPopMatrix();
+        ofPushMatrix(); {
+            ofTranslate(360, vid.height*scale + 220);
+            drawBins = middleBins;
+            plot(drawBins, -plotHeight, plotHeight / 2);
+            
+            
+        } ofPopMatrix();
     } ofPopStyle();
-    
-    
     
     
     
@@ -142,6 +156,20 @@ void testApp::guiEvent(ofxUIEventArgs &e)
     }
 }
 
+void testApp::plot(vector<float>& buffer, float scale, float offset) {
+	ofNoFill();
+	int n = buffer.size();
+	ofRect(0, 0, n, plotHeight);
+	glPushMatrix();
+	glTranslatef(0, plotHeight / 2 + offset, 0);
+	ofBeginShape();
+	for (int i = 0; i < n; i++) {
+		ofVertex(i, sqrt(buffer[i]) * scale);
+	}
+	ofEndShape();
+	glPopMatrix();
+}
+
 void testApp::calculateColor(ofPoint& p)
 {
     float total = 0;
@@ -156,10 +184,16 @@ void testApp::calculateColor(ofPoint& p)
     }
     gViewer1.pushData(total/100);
     colorValues.push_back(total/100);
-    if( colorValues.size() > 100 )
+    if( colorValues.size() > 1000 )
     {
-        colorValues.erase(colorValues.begin(),colorValues.begin()+(colorValues.size()-100));
+        colorValues.erase(colorValues.begin(),colorValues.begin()+(colorValues.size()-1000));
     }
+    fft->setSignal(colorValues);
+    
+    float* curFft = fft->getPhase();
+    memcpy(&audioBins[0],curFft,sizeof(float) * fft->getBinSize());
+    
+    middleBins = audioBins;
     
 }
 
