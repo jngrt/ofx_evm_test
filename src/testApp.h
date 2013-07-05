@@ -49,7 +49,7 @@ private:
     
     vector<float> drawBins, middleBins, audioBins;
 
-    
+    float heartRate;
     
 //--- VIDEO INPUT ---//
 #ifdef USE_WEBCAM

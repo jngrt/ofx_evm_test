@@ -9,7 +9,7 @@ const int input_height = 240;
 vector<string> temporal_filter;
 EVM_TEMPORAL_FILTER filter = EVM_TEMPORAL_IIR;
 //iir params
-float alpha_iir = 10;
+float alpha_iir = 25;
 float lambda_c_iir = 16;
 float r1 = 0.4;
 float r2 = 0.05;
@@ -46,7 +46,7 @@ void testApp::setup(){
     gViewer1.setup(1024);
 
     plotHeight = 128;
-    bufferSize = 2048;
+    bufferSize = 512;
 	
     fft = ofxFft::create(bufferSize, OF_FFT_WINDOW_HAMMING, OF_FFT_FFTW);
     drawBins.resize(fft->getBinSize());
@@ -121,7 +121,7 @@ void testApp::draw(){
             
         } ofPopMatrix();
         ofPushMatrix(); {
-            ofTranslate(360, vid.height*scale + 220);
+            ofTranslate(360, vid.height * scale + 220);
             drawBins = middleBins;
             plot(drawBins, -plotHeight, plotHeight / 2);
             
@@ -182,13 +182,18 @@ void testApp::calculateColor(ofPoint& p)
             //values.push_back(color.r);
         }
     }
-    gViewer1.pushData(total/100);
-    colorValues.push_back(total/100);
-    if( colorValues.size() > 1000 )
+    gViewer1.pushData( total / 100 );
+    
+    colorValues.push_back( total / 100 );
+    
+    if( colorValues.size() > bufferSize )
     {
-        colorValues.erase(colorValues.begin(),colorValues.begin()+(colorValues.size()-1000));
+        colorValues.erase(colorValues.begin(),colorValues.begin()+(colorValues.size()-bufferSize));
     }
+    
+    
     fft->setSignal(colorValues);
+    
     
     //float* curFft = fft->getPhase();
 
@@ -198,10 +203,17 @@ void testApp::calculateColor(ofPoint& p)
 	
 	float maxValue = 0;
 	for(int i = 0; i < fft->getBinSize(); i++) {
-		if(abs(audioBins[i]) > maxValue) {
+        const double Hz = static_cast<double>(i)/ (fft->getBinSize()-1) * (samplingRate / 2.0);
+        const double bpm = 60*Hz;
+		if(abs(audioBins[i]) > maxValue && bpm > 20 && bpm < 200 ) {
 			maxValue = abs(audioBins[i]);
+                        
+            heartRate = bpm;
+
 		}
 	}
+    cout<<heartRate<<endl;
+    
 	for(int i = 0; i < fft->getBinSize(); i++) {
 		audioBins[i] /= maxValue;
 	}
@@ -293,7 +305,9 @@ void testApp::guiSetup()
     gui->addSpacer(length, 2);
     gui->addLabel("COLOR SAMPLE AREA", OFX_UI_FONT_LARGE);
     gui->addSlider("y offset",-50,50,&sampleOffsetY,length,dim);
-    
+    gui->addSpacer(length, 2);
+    gui->addLabel("Heart Rate: " + ofToString( heartRate ), OFX_UI_FONT_LARGE);
+    gui->addSlider("heart rate",0,250,&heartRate,length,dim);
     
     ofAddListener(gui->newGUIEvent, this, &testApp::guiEvent);
 }
