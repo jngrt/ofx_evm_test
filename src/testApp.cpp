@@ -190,7 +190,23 @@ void testApp::calculateColor(ofPoint& p)
     }
     fft->setSignal(colorValues);
     
-    float* curFft = fft->getPhase();
+    //float* curFft = fft->getPhase();
+
+    
+    float* curFft = fft->getAmplitude();
+	memcpy(&audioBins[0], curFft, sizeof(float) * fft->getBinSize());
+	
+	float maxValue = 0;
+	for(int i = 0; i < fft->getBinSize(); i++) {
+		if(abs(audioBins[i]) > maxValue) {
+			maxValue = abs(audioBins[i]);
+		}
+	}
+	for(int i = 0; i < fft->getBinSize(); i++) {
+		audioBins[i] /= maxValue;
+	}
+    
+    
     memcpy(&audioBins[0],curFft,sizeof(float) * fft->getBinSize());
     
     middleBins = audioBins;
