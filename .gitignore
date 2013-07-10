@@ -1,3 +1,5 @@
 bin/*.app
 *.DS_Store
 *.DS_Store
+*UserInterfaceState.xcuserstate
+*.DS_Store
