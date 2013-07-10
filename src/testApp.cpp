@@ -32,7 +32,7 @@ float sampleOffsetY = -30;
 void testApp::setup(){
     ofSetVerticalSync(true);
     ofEnableSmoothing();
-
+    ofSetFrameRate(samplingRate);
 
     
     //setup video source
@@ -203,8 +203,10 @@ void testApp::calculateColor(ofPoint& p)
 	
 	float maxValue = 0;
 	for(int i = 0; i < fft->getBinSize(); i++) {
-        const double Hz = static_cast<double>(i)/ (fft->getBinSize()-1) * (samplingRate / 2.0);
-        const double bpm = 60*Hz;
+        //const double Hz = static_cast<double>(i)/ (fft->getBinSize()-1) * (samplingRate / 2.0);
+        const double Hz = static_cast<double>(i) * samplingRate / fft->getBinSize();
+        
+        const double bpm = 60 * Hz;
 		if(abs(audioBins[i]) > maxValue && bpm > 20 && bpm < 200 ) {
 			maxValue = abs(audioBins[i]);
                         
@@ -241,6 +243,7 @@ void testApp::videoSetup()
 {
 #ifdef USE_WEBCAM
     vid.initGrabber(input_width,input_height);
+    
 #else
     vid.loadMovie("wrist");
     if (!vid.isLoaded()) {
