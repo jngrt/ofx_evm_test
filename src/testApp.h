@@ -30,10 +30,14 @@ public:
     void guiSetup();
     void cvSetup();
     
-    void calculateColor(ofPoint& p);
-    void plot(vector<float>& buffer, float scale, float offset);
-
-
+    float calculateColor();
+    void plotFullFft(vector<float>& buffer, float scale, float offset, float width);
+    void plotPartialFft(vector<float>& buffer, float scale, float offset, float width, int startIndex, int endIndex);
+    
+    void updateDetection();
+    
+    float indexToBpm( float index );
+    float bpmToIndex( float bpm );
 private:
     ofxUICanvas *gui;
     ofxEvm evm;
@@ -43,13 +47,18 @@ private:
     vector<float> colorValues;
     ofxGraphViewer gViewer1;
     
+    ofPoint forehead;
+    
     ofxFft* fft;
     
     int plotHeight, bufferSize;
     
-    vector<float> drawBins, middleBins, audioBins;
+    vector<float> fullFftBins, partialFftBins; //, audioBins;
 
     float heartRate;
+    
+    ofTrueTypeFont fftFont;
+
     
 //--- VIDEO INPUT ---//
 #ifdef USE_WEBCAM

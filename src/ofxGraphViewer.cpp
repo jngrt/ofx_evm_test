@@ -68,6 +68,7 @@ void ofxGraphViewer::draw(float posx, float posy)
 
 void ofxGraphViewer::draw(float posx, float posy, float w, float h, float min, float max)
 {
+    drawGrid(posx, posy, w, h, 30);
     if(data == NULL) return;
     
     ofPushStyle();
@@ -75,7 +76,7 @@ void ofxGraphViewer::draw(float posx, float posy, float w, float h, float min, f
 	ofSetColor(ofColor::white);
 	ofRect(posx, posy, w, h);
 	ofSetColor(120, 120, 120);
-	ofLine(posx, posy+h/2.0, posx+w, posy+h/2.0);
+	ofLine( posx, posy+h / 2.0, posx + w, posy + h / 2.0 );
     
 	ofSetColor(ofColor::green);
 	glBegin(GL_LINE_STRIP);
@@ -84,6 +85,22 @@ void ofxGraphViewer::draw(float posx, float posy, float w, float h, float min, f
 	}
 	glEnd();
     
+    ofPopStyle();
+}
+
+void ofxGraphViewer::drawGrid(float posx, float posy, float w, float h, float interval) {
+    
+    ofPushStyle();
+    ofPushMatrix();
+    ofNoFill();
+    ofSetColor(ofColor::gray);
+    ofTranslate(posx, posy);
+    
+    for ( int i = 0; i < w; i += interval ) {
+        ofLine( i , 0, i , h );
+    }
+    
+    ofPopMatrix();
     ofPopStyle();
 }
 

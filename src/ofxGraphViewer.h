@@ -24,6 +24,7 @@ public:
     void draw();
     void draw(float posx, float posy);
     void draw(float posx, float posy, float w, float h, float min, float max);
+    void drawGrid(float posx, float posy, float w, float h, float interval);
     
     void setSize(float _width, float _height);
     void setRange(float _min, float _max);
