@@ -35,6 +35,7 @@ public:
     void plotPartialFft(vector<float>& buffer, float scale, float offset, float width, int startIndex, int endIndex);
     
     void updateDetection();
+    float getAverageFramerate();
     
     float indexToBpm( float index );
     float bpmToIndex( float bpm );
@@ -45,6 +46,7 @@ private:
     ofImage sunglasses;
     
     vector<float> colorValues;
+    vector<float> framerates;
     ofxGraphViewer gViewer1;
     
     ofPoint forehead;
@@ -58,6 +60,8 @@ private:
     float heartRate;
     
     ofTrueTypeFont fftFont;
+    
+    
 
     
 //--- VIDEO INPUT ---//

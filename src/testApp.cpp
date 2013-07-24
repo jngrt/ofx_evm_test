@@ -19,13 +19,15 @@ float alpha_ideal = 150;
 float lambda_c_ideal = 6;
 float fl = 140.0/60.0;
 float fh = 160.0/60.0;
-float samplingRate = 30;
+float samplingRate = 60;
 float chromAttenuation_ideal = 1;
 
 float graphLow = 0.0;
 float graphHigh = 256.0;
 
 float sampleOffsetY = 40;
+
+float averageFramerate = 0;
 
 
 //--------------------------------------------------------------
@@ -126,6 +128,8 @@ void testApp::draw(){
         } ofPopMatrix();
     } ofPopStyle();
     
+    //ofDrawBitmapString(ofToString(ofGetFrameRate())+"fps", 500, 15);
+    
 }
 
 //--------------------------------------------------------------
@@ -154,7 +158,7 @@ void testApp::guiEvent(ofxUIEventArgs &e)
 
 float testApp::indexToBpm( float index ) {
     
-    const double Hz = static_cast<double>(index) / (fft->getBinSize()-1) * (samplingRate / 2.0);
+    const double Hz = static_cast<double>(index) / (fft->getBinSize()-1) * (averageFramerate / 2.0);
     //const double Hz = static_cast<double>(i) * samplingRate / fft->getBinSize();
     
     return 60 * Hz;
@@ -163,7 +167,7 @@ float testApp::bpmToIndex( float bpm ) {
     //   12 / 3 * 2 = 8
     // 12 = 8 / 2 * 3
     const double hz = bpm / 60;
-    return hz / (samplingRate / 2.0) * (fft->getBinSize()-1);
+    return hz / (averageFramerate / 2.0) * (fft->getBinSize()-1);
 }
 
 
@@ -212,18 +216,22 @@ void testApp::plotPartialFft(vector<float>& buffer, float scale, float offset, f
     } glPopMatrix();
 }
 
-
+float testApp::getAverageFramerate() {
+    return accumulate(framerates.begin(), framerates.end(), 0.0) / framerates.size();
+}
 void testApp::updateDetection() {
     
     float averageColor = calculateColor();
     
     gViewer1.pushData( averageColor );
     colorValues.push_back( averageColor );
-    
+    framerates.push_back( ofGetFrameRate() );
+    averageFramerate = getAverageFramerate();
     
     if( colorValues.size() > bufferSize )
     {
-        colorValues.erase(colorValues.begin(),colorValues.begin()+(colorValues.size()-bufferSize));
+        colorValues.erase( colorValues.begin(), colorValues.begin() + ( colorValues.size() - bufferSize ));
+        framerates.erase( framerates.begin(), framerates.begin() + ( framerates.size() - bufferSize ));
     }
     
     
@@ -282,8 +290,8 @@ float testApp::calculateColor()
 
     for(int i = 0; i < 10; i++) {
         for( int j=0; j< 10; j++) {
-            //color = evm.frame.getColor(forehead.x+i,forehead.y+j);
-            color = evm.getMagnifiedImage()
+            color = evm.frame.getColor(forehead.x+i,forehead.y+j);
+           // color = evm.getMagnifiedImage()
             total += color.r;
         }
     }
@@ -341,6 +349,7 @@ void testApp::guiSetup()
 	
     gui->addLabel("EULERIAN VIDEO MAGNIFICATION", OFX_UI_FONT_LARGE);
     gui->addWidgetDown(new ofxUIFPS(OFX_UI_FONT_MEDIUM));
+    gui->addNumberDialer("avg fps", 0, 60, &averageFramerate, 1);
     
     gui->addSpacer(length, 2);
 	gui->addLabel("TEMPORAL FILTER", OFX_UI_FONT_LARGE);
